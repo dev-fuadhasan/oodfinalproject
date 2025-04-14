@@ -58,5 +58,3 @@ A text-based chat application developed using **Core Java**. This terminal app a
 
 ---
 
-## 📂 Project Structure
-
