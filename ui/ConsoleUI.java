@@ -20,10 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- * Console-based implementation of the UserInterface.
- * Handles all user interaction through the terminal.
- */
 public class ConsoleUI implements UserInterface {
     private final Scanner scanner;
     private final UserService userService;
@@ -55,8 +51,7 @@ public class ConsoleUI implements UserInterface {
                 showAuthMenu();
             }
         }
-        
-        // Close scanner when application exits
+
         scanner.close();
     }
     
@@ -73,11 +68,9 @@ public class ConsoleUI implements UserInterface {
     
     @Override
     public void clearScreen() {
-        // This is a simple way to provide visual separation in the console
         for (int i = 0; i < 50; i++) {
             System.out.println();
         }
-        // On Windows, you could use "cls", on Unix "clear", but this is more portable
     }
     
     private void showWelcomeScreen() {
@@ -126,8 +119,7 @@ public class ConsoleUI implements UserInterface {
         displayMessage("              MAIN MENU            ");
         displayMessage("===================================");
         displayMessage("Logged in as: " + userService.getCurrentUsername());
-        
-        // Show notification for unread messages
+
         showUnreadMessageNotification();
         
         displayMessage("-----------------------------------");
@@ -434,11 +426,6 @@ public class ConsoleUI implements UserInterface {
         getInput("Press Enter to continue...");
     }
 
-    /**
-     * Shows notification for unread messages when a user logs in.
-     * Checks direct messages and group messages for the current user.
-     * Only counts messages since the user last viewed the conversation.
-     */
     private void showUnreadMessageNotification() {
         if (!userService.isLoggedIn()) {
             return;
@@ -450,19 +437,15 @@ public class ConsoleUI implements UserInterface {
         Map<String, Integer> unreadMessageCounts = new HashMap<>();
         Map<String, Integer> unreadGroupMessageCounts = new HashMap<>();
 
-        // Check for direct messages addressed to the current user
         for (Message message : allMessages) {
-            // Direct messages
             if (!message.isGroupMessage() && message.getReceiverId().equals(currentUsername)) {
                 String senderId = message.getSenderId();
                 LocalDateTime lastReadTime = currentUser.getLastReadTime(senderId);
 
-                // Count the message if it's new (after last read time)
                 if (lastReadTime == null || message.getTimestamp().isAfter(lastReadTime)) {
                     unreadMessageCounts.put(senderId, unreadMessageCounts.getOrDefault(senderId, 0) + 1);
                 }
             }
-            // Group messages
             else if (message.isGroupMessage()) {
                 try {
                     String groupId = message.getReceiverId();
@@ -471,18 +454,15 @@ public class ConsoleUI implements UserInterface {
                     if (group.isMember(currentUsername) && !message.getSenderId().equals(currentUsername)) {
                         LocalDateTime lastReadGroupTime = currentUser.getLastReadGroupTime(groupId);
 
-                        // Count the message if it's new (after last read time)
                         if (lastReadGroupTime == null || message.getTimestamp().isAfter(lastReadGroupTime)) {
                             unreadGroupMessageCounts.put(groupId, unreadGroupMessageCounts.getOrDefault(groupId, 0) + 1);
                         }
                     }
                 } catch (GroupNotFoundException e) {
-                    // Group not found, skip this message
                 }
             }
         }
 
-        // Display notifications for direct messages
         if (!unreadMessageCounts.isEmpty()) {
             displayMessage("\n*** UNREAD MESSAGES ***");
             for (Map.Entry<String, Integer> entry : unreadMessageCounts.entrySet()) {
@@ -490,7 +470,6 @@ public class ConsoleUI implements UserInterface {
             }
         }
 
-        // Display notifications for group messages
         if (!unreadGroupMessageCounts.isEmpty()) {
             if (unreadMessageCounts.isEmpty()) {
                 displayMessage("\n*** UNREAD MESSAGES ***");
@@ -500,7 +479,6 @@ public class ConsoleUI implements UserInterface {
                     Group group = groupService.getGroupById(entry.getKey());
                     displayMessage("- " + entry.getValue() + " message(s) in group " + group.getGroupName());
                 } catch (GroupNotFoundException e) {
-                    // Group not found, skip this notification
                 }
             }
         }
@@ -512,10 +490,8 @@ public class ConsoleUI implements UserInterface {
         displayMessage("        CHAT WITH " + username);
         displayMessage("===================================");
 
-        // Add user to contacts if not already there
         userService.addContact(username);
 
-        // Get and display message history
         List<Message> messages = messageService.getDirectMessagesBetweenUsers(
                 userService.getCurrentUsername(), username);
 
@@ -529,7 +505,6 @@ public class ConsoleUI implements UserInterface {
             }
         }
 
-        // Update last read time for this contact
         User currentUser = userService.getCurrentUser();
         currentUser.updateLastReadTime(username);
         userService.saveUser(currentUser);
@@ -541,7 +516,6 @@ public class ConsoleUI implements UserInterface {
             String messageContent = getInput("");
 
             if (messageContent.equalsIgnoreCase("EXIT")) {
-                // Update the last read time again when exiting to capture any new messages
                 currentUser = userService.getCurrentUser();
                 currentUser.updateLastReadTime(username);
                 userService.saveUser(currentUser);
@@ -800,7 +774,6 @@ public class ConsoleUI implements UserInterface {
         displayMessage("      GROUP CHAT: " + group.getGroupName());
         displayMessage("===================================");
 
-        // Get and display message history
         List<Message> messages = messageService.getGroupMessages(group.getGroupId());
 
         if (messages.isEmpty()) {
@@ -812,7 +785,6 @@ public class ConsoleUI implements UserInterface {
             }
         }
 
-        // Update last read time for this group
         User currentUser = userService.getCurrentUser();
         currentUser.updateLastReadGroupTime(group.getGroupId());
         userService.saveUser(currentUser);
@@ -1037,16 +1009,13 @@ public class ConsoleUI implements UserInterface {
         String confirm = getInput("").toLowerCase();
         
         if (confirm.equals("y") || confirm.equals("yes")) {
-            // Remove user from group members
             Group updatedGroup = groupService.getGroupById(group.getGroupId());
             updatedGroup.removeMember(userService.getCurrentUsername());
-            
-            // Remove group from user's group list
+
             User user = userService.getCurrentUser();
             user.removeGroup(group.getGroupId());
             userService.saveUser(user);
-            
-            // Save updated group
+
             Map<String, Group> groups = dataPersistence.loadGroups();
             groups.put(group.getGroupId(), updatedGroup);
             dataPersistence.saveGroups(groups);
@@ -1073,32 +1042,25 @@ public class ConsoleUI implements UserInterface {
         String confirm = getInput("");
         
         if (confirm.equals("DELETE")) {
-            // Delete the user's messages
             messageService.deleteUserMessages(userService.getCurrentUsername());
-            
-            // Remove user from all groups they are a member of
+
             List<Group> userGroups = groupService.getUserGroups(userService.getCurrentUsername());
             for (Group group : userGroups) {
                 try {
                     if (group.isAdmin(userService.getCurrentUsername())) {
-                        // Delete groups where user is admin
                         groupService.deleteGroup(group.getGroupId(), userService.getCurrentUsername());
                         messageService.deleteGroupMessages(group.getGroupId());
                     } else {
-                        // Just leave other groups
                         group.removeMember(userService.getCurrentUsername());
-                        
-                        // Save updated group
+
                         Map<String, Group> groups = dataPersistence.loadGroups();
                         groups.put(group.getGroupId(), group);
                         dataPersistence.saveGroups(groups);
                     }
                 } catch (GroupNotFoundException e) {
-                    // Group not found, just continue with next group
                 }
             }
-            
-            // Delete the account
+
             boolean deleted = userService.deleteAccount();
             
             if (deleted) {

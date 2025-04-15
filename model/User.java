@@ -9,10 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Represents a user in the chat application.
- * Implements Serializable to support file-based persistence.
- */
 public class User implements Serializable {
     private static final long serialVersionUID = 2L; // Updated version number
 

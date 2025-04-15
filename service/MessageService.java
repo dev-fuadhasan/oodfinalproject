@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Service class for message-related operations.
- */
 public class MessageService {
     private final DataPersistence dataPersistence;
     
@@ -18,14 +15,7 @@ public class MessageService {
         this.dataPersistence = dataPersistence;
     }
     
-    /**
-     * Send a direct message from one user to another.
-     * 
-     * @param senderId username of sender
-     * @param receiverId username of receiver
-     * @param content message content
-     * @return the created Message object
-     */
+
     public Message sendDirectMessage(String senderId, String receiverId, String content) {
         String messageId = UUID.randomUUID().toString();
         Message message = new Message(messageId, senderId, receiverId, content, false);
@@ -37,15 +27,7 @@ public class MessageService {
         
         return message;
     }
-    
-    /**
-     * Send a message to a group.
-     * 
-     * @param senderId username of sender
-     * @param groupId id of the group
-     * @param content message content
-     * @return the created Message object
-     */
+
     public Message sendGroupMessage(String senderId, String groupId, String content) {
         String messageId = UUID.randomUUID().toString();
         Message message = new Message(messageId, senderId, groupId, content, true);
@@ -57,14 +39,7 @@ public class MessageService {
         
         return message;
     }
-    
-    /**
-     * Get all direct messages between two users.
-     * 
-     * @param user1 first user's username
-     * @param user2 second user's username
-     * @return list of messages between the users, ordered by timestamp
-     */
+
     public List<Message> getDirectMessagesBetweenUsers(String user1, String user2) {
         List<Message> allMessages = dataPersistence.loadMessages();
         
@@ -76,43 +51,28 @@ public class MessageService {
                     (msg.getSenderId().equals(user2) && msg.getReceiverId().equals(user1))
                 )
                 .collect(Collectors.toList());
-        
-        // Sort by timestamp
+
         Collections.sort(conversations);
         
         return conversations;
     }
-    
-    /**
-     * Get all messages in a group.
-     * 
-     * @param groupId the group ID
-     * @return list of messages in the group, ordered by timestamp
-     */
+
     public List<Message> getGroupMessages(String groupId) {
         List<Message> allMessages = dataPersistence.loadMessages();
-        
-        // Filter messages that belong to this group
+
         List<Message> groupMessages = allMessages.stream()
                 .filter(Message::isGroupMessage)
                 .filter(msg -> msg.getReceiverId().equals(groupId))
                 .collect(Collectors.toList());
-        
-        // Sort by timestamp
+
         Collections.sort(groupMessages);
         
         return groupMessages;
     }
-    
-    /**
-     * Delete all messages related to a specific user (for account deletion).
-     * 
-     * @param username the username of the user being deleted
-     */
+
     public void deleteUserMessages(String username) {
         List<Message> allMessages = dataPersistence.loadMessages();
-        
-        // Remove messages where user is sender or receiver (for direct messages only)
+
         List<Message> remainingMessages = allMessages.stream()
                 .filter(msg -> !(
                     msg.getSenderId().equals(username) || 
@@ -122,16 +82,10 @@ public class MessageService {
         
         dataPersistence.saveMessages(remainingMessages);
     }
-    
-    /**
-     * Delete all messages related to a specific group (for group deletion).
-     * 
-     * @param groupId the ID of the group being deleted
-     */
+
     public void deleteGroupMessages(String groupId) {
         List<Message> allMessages = dataPersistence.loadMessages();
-        
-        // Remove messages where group is receiver
+
         List<Message> remainingMessages = allMessages.stream()
                 .filter(msg -> !(msg.isGroupMessage() && msg.getReceiverId().equals(groupId)))
                 .collect(Collectors.toList());

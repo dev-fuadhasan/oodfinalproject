@@ -3,10 +3,6 @@ package com.chatapp.model;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Represents a request to join a group in the chat application.
- * Implements Serializable to support file-based persistence.
- */
 public class JoinRequest implements Serializable {
     private static final long serialVersionUID = 1L;
     
@@ -21,8 +17,7 @@ public class JoinRequest implements Serializable {
         this.requestorUsername = requestorUsername;
         this.requestTime = LocalDateTime.now();
     }
-    
-    // Getters
+
     public String getRequestId() {
         return requestId;
     }

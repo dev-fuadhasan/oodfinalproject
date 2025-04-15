@@ -4,10 +4,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Represents a message in the chat application.
- * Implements Serializable to support file-based persistence.
- */
 public class Message implements Serializable, Comparable<Message> {
     private static final long serialVersionUID = 1L;
     
@@ -26,8 +22,7 @@ public class Message implements Serializable, Comparable<Message> {
         this.timestamp = LocalDateTime.now();
         this.isGroupMessage = isGroupMessage;
     }
-    
-    // Getters
+
     public String getMessageId() {
         return messageId;
     }
@@ -51,11 +46,7 @@ public class Message implements Serializable, Comparable<Message> {
     public boolean isGroupMessage() {
         return isGroupMessage;
     }
-    
-    /**
-     * Format timestamp for display
-     * @return formatted timestamp string
-     */
+
     public String getFormattedTimestamp() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return timestamp.format(formatter);

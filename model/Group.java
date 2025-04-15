@@ -7,10 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Represents a group chat in the application.
- * Implements Serializable to support file-based persistence.
- */
 public class Group implements Serializable {
     private static final long serialVersionUID = 1L;
     
@@ -30,8 +26,7 @@ public class Group implements Serializable {
         this.pendingRequests = new ArrayList<>();
         this.creationTime = LocalDateTime.now();
     }
-    
-    // Getters and setters
+
     public String getGroupId() {
         return groupId;
     }
@@ -65,7 +60,6 @@ public class Group implements Serializable {
     }
     
     public void removeMember(String username) {
-        // Admin cannot be removed
         if (!isAdmin(username)) {
             members.remove(username);
         }
@@ -76,7 +70,6 @@ public class Group implements Serializable {
     }
     
     public void addJoinRequest(JoinRequest request) {
-        // Don't add if user is already a member or already has a pending request
         if (!isMember(request.getRequestorUsername()) && 
                 !hasPendingRequest(request.getRequestorUsername())) {
             pendingRequests.add(request);
